@@ -19,6 +19,8 @@ contract HelperConfig is Script {
             activeNetworkConfig = getSepoliaEthConfig();
         } else if (block.chainid == 1) {
             activeNetworkConfig = getMainnetEthConfig();
+        } else if (block.chainid == 300) {
+            activeNetworkConfig = getZkSyncSepoliaConfig();
         } else {
             activeNetworkConfig = getOrCreateAnvilEthConfig();
         }
@@ -35,6 +37,11 @@ contract HelperConfig is Script {
         return mainnetConfig;
     }
 
+    function getZkSyncSepoliaConfig() public pure returns (NetworkConfig memory) {
+        NetworkConfig memory zkSyncConfig = NetworkConfig({priceFeed: 0xfEefF7c3fB57d18C5C6Cdd71e45D2D0b4F9377bF});
+        return zkSyncConfig;
+    }
+
     function getOrCreateAnvilEthConfig() public returns (NetworkConfig memory) {
         // price feed address
         if (activeNetworkConfig.priceFeed != address(0)) {
@@ -47,5 +54,9 @@ contract HelperConfig is Script {
 
         NetworkConfig memory anvilConfig = NetworkConfig({priceFeed: address(mockPriceFeed)});
         return anvilConfig;
+    }
+
+    function getPriceFeed() external view returns (address) {
+        return activeNetworkConfig.priceFeed;
     }
 }

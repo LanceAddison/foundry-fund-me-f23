@@ -5,22 +5,30 @@ import {Test, console} from "forge-std/Test.sol";
 import {FundMe} from "../../src/FundMe.sol";
 import {DeployFundMe} from "../../script/DeployFundMe.s.sol";
 import {FundFundMe, WithdrawFundMe} from "../../script/Interactions.s.sol";
+import {ZkSyncChainChecker} from "lib/foundry-devops/src/ZkSyncChainChecker.sol";
+import {HelperConfig} from "../../script/HelperConfig.s.sol";
 
-contract InteractionsTest is Test {
+contract InteractionsTest is ZkSyncChainChecker, Test {
     FundMe fundMe;
+    HelperConfig public helperConfig;
 
     address USER = makeAddr("user");
     uint256 constant SEND_VALUE = 0.1 ether;
     uint256 constant STARTING_BALANCE = 10 ether;
     uint256 constant GAS_PRICE = 1;
 
-    function setUp() external {
-        DeployFundMe deploy = new DeployFundMe();
-        fundMe = deploy.run();
+    function setUp() external skipZkSync {
+        if (!isZkSyncChain()) {
+            DeployFundMe deploy = new DeployFundMe();
+            fundMe = deploy.run();
+        } else {
+            helperConfig = new HelperConfig();
+            fundMe = new FundMe(helperConfig.getPriceFeed());
+        }
         vm.deal(USER, STARTING_BALANCE);
     }
 
-    function testUserCanFundAndOwnerWithdraw() public {
+    function testUserCanFundAndOwnerWithdraw() public skipZkSync {
         FundFundMe fundFundMe = new FundFundMe();
         fundFundMe.fundFundMe(address(fundMe));
 
